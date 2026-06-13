@@ -19,4 +19,5 @@ typedef struct {
 // Prototipos de las funciones en C 
 void imprimir_ventana(char mapa[FILAS_MAPA][COLUMNAS_MAPA + 1], Jugador p);
 
+extern int contar_caracteres(char* mapa, int total_celdas, char caracter);
 #endif
