@@ -20,6 +20,15 @@ int main() {
 
     char tecla;
     int jugando = 1;
+    
+    // Calcular total de celdas (60 filas * 61 caracteres incluyendo el salto/nulo)
+    int celdas_totales = FILAS_MAPA * (COLUMNAS_MAPA + 1);
+
+    // Llamar a nuestra funcion en NASM
+    int total_monedas = contar_caracteres(&mapas[nivel_actual][0][0], celdas_totales, 'M');
+    
+    printf("Total de monedas en este nivel: %d\n", total_monedas);
+    system("pause"); // Pausa temporal para que alcances a leer el resultado
 
     // Bucle principal del juego
     while (jugando) {
