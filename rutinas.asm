@@ -1,82 +1,104 @@
-section .text
-
 global contar_caracteres
 global validar_movimiento
 global calcular_puntaje
 global detectar_objeto
 global contar_celdas_libres
 
-; FUNCION 1: CONTAR CARACTERES 
+section .text
+
+; ====================================================================
+; 1: contar_caracteres 
+; RCX = mapa, RDX = total celdas, R8B = caracter
+; ====================================================================
 contar_caracteres:
-    xor rax, rax            ; Limpiamos el contador (empieza en 0)
-    xor r9, r9              ; Indice para el ciclo (i = 0)
+    xor rax, rax          
+    test rdx, rdx         
+    jle .fin              
+.bucle:
+    mov r9b, byte [rcx]   
+    cmp r9b, r8b          
+    jne .siguiente        
+    inc rax               
+.siguiente:
+    inc rcx               
+    dec rdx               
+    jnz .bucle            
+.fin:
+    ret                   
 
-bucle_conteo:
-    cmp r9d, edx            ; Ver si ya llegamos al final de las celdas
-    jge fin_conteo
-    
-    mov r10b, [rcx + r9]    ; Agarramos el caracter actual
-    cmp r10b, r8b           ; Ver si es el que buscamos
-    jne siguiente_celda
-    inc rax                 ; Si coincide, sumamos 1
-
-siguiente_celda:
-    inc r9                  ; i++
-    jmp bucle_conteo
-
-fin_conteo:
-    ret
-
-
-; FUNCION 2: VALIDAR MOVIMIENTO
+; ====================================================================
+; 2: validar_movimiento 
+; RCX = mapa, RDX = columnas (61), R8 = fila, R9 = columna
+; ====================================================================
 validar_movimiento:
-    ; Formula para movernos en la matriz: (fila * columnas) + columna
-    mov eax, r8d            ; Pasamos nueva_fila a EAX
-    imul eax, edx           ; Multiplicamos por columnas_mapa (60)
-    add eax, r9d            ; Sumamos la nueva_columna
+    mov rax, r8           ; rax = fila
+    imul rax, rdx         ; rax = fila * columnas
+    add rax, r9           ; rax = (fila * columnas) + columna
     
-    movsxd rax, eax         ; Ajustamos el tamaño a 64 bits para la direccion
+    mov r10b, byte [rcx + rax]
+    cmp r10b, '#'         ; Revisar si es pared
+    je .bloqueado
     
-    mov r10b, [rcx + rax]   ; Buscamos que caracter hay en esa posicion del mapa
-    
-    cmp r10b, '#'           ; ¿Es una pared?
-    je es_pared
-    
-    mov rax, 1              ; Si no es pared, regresamos 1 (libre)
+    mov rax, 1            ; Permitido avanzar
+    ret
+.bloqueado:
+    mov rax, 0            ; Pared, bloqueado
     ret
 
-es_pared:
-    mov rax, 0              ; Si es pared, regresamos 0 (bloqueado)
-    ret
-
-
-;FUNCION 3: CALCULAR PUNTAJE 
+; ====================================================================
+; 3: calcular_puntaje 
+; RCX = monedas, RDX = pasos, R8 = niveles
+; ====================================================================
 calcular_puntaje:
-    ; Formula facil: (monedas * 100) - (pasos * 2) + (niveles * 500)
-    mov rax, rcx            ; Cargamos monedas
-    imul rax, 100           ; Monedas por 100
-
-    mov r10, rdx            ; Cargamos pasos
-    shl r10, 1              ; Multiplicamos pasos por 2 usando un shift a la izquierda
-
-    sub rax, r10            ; Restamos los pasos al puntaje que llevamos
-
-    movsxd r11, r8d         ; Cargamos niveles completados
-    imul r11, 500           ; Cada nivel da 500 puntos extra
-
-    add rax, r11            ; Sumamos el bono de los niveles
+    mov rax, rcx          
+    imul rax, 100         ; rax = monedas * 100
+    
+    mov r9, rdx           
+    shl r9, 1             ; r9 = pasos * 2
+    sub rax, r9           ; rax = (monedas * 100) - (pasos * 2)
+    
+    movsxd r9, r8d        
+    imul r9, 500          ; r9 = niveles * 500
+    add rax, r9           ; rax = puntaje final
     ret
 
-
-; FUNCION 4: DETECTAR OBJETO 
+; ====================================================================
+; 4: detectar_objeto 
+; RCX = mapa, RDX = cols, R8 = fila, R9 = col, [rsp+40] = objeto
+; ====================================================================
 detectar_objeto:
-    ; Haz esta funcion
-    xor rax, rax            ; mientras regresa 0 para que no truene el compilador
+    mov rax, r8
+    imul rax, rdx
+    add rax, r9           ; rax = indice lineal
+    
+    mov r10b, byte [rcx + rax] 
+    mov r11b, byte [rsp + 40]  ; Quinto parametro extraido de la pila
+    
+    cmp r10b, r11b        
+    je .encontrado
+    
+    mov rax, 0            
+    ret
+.encontrado:
+    mov rax, 1            
     ret
 
-
-; FUNCION 5: CONTAR CELDAS LIBRES 
+; ====================================================================
+; 5: contar_celdas_libres 
+; RCX = mapa, RDX = total celdas
+; ====================================================================
 contar_celdas_libres:
-    ; Falta meter el ciclo para buscar los puntos '.'
-    xor rax, rax            ; Regresa 0 temporalmente
+    xor rax, rax          
+    test rdx, rdx         
+    jle .fin_celdas
+.bucle_celdas:
+    mov r8b, byte [rcx]
+    cmp r8b, '.'          ; Compara directo contra el camino libre
+    jne .sig_celda
+    inc rax
+.sig_celda:
+    inc rcx
+    dec rdx
+    jnz .bucle_celdas
+.fin_celdas:
     ret
