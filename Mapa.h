@@ -1,8 +1,8 @@
 #ifndef MAPAS_H
 #define MAPAS_H
 
-#define FILAS_MAPA 100
-#define COLUMNAS_MAPA 100
+#define FILAS_MAPA 60
+#define COLUMNAS_MAPA 60
 #define NUM_NIVELES 3
 
 char mapas[NUM_NIVELES][FILAS_MAPA][COLUMNAS_MAPA + 1] = {
