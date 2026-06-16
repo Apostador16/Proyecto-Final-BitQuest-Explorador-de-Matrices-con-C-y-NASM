@@ -1,36 +1,24 @@
 @echo off
-title Compilador Proyecto - UAA
-cls
+echo ========================================
+echo Compilando BitQuest (C + NASM 64 bits)...
+echo ========================================
 
-echo ============================================================
-echo      COMPILANDO RUTINAS EN ENSAMBLADOR (NASM 64-BITS)
-echo ============================================================
+echo 1. Ensamblando rutinas.asm...
 nasm -f win64 rutinas.asm -o rutinas.obj
 if %errorlevel% neq 0 (
-    echo.
-    echo [ERROR] Hubo un problema al compilar rutinas.asm con NASM.
+    echo [ERROR] Fallo al ensamblar rutinas.asm
     pause
     exit /b %errorlevel%
 )
-echo [OK] rutinas.obj generado correctamente.
-echo.
 
-echo ============================================================
-echo      COMPILANDO CODIGO EN C Y ENLAZANDO CON GCC
-echo ============================================================
-gcc Main.c Juego.c rutinas.obj -o Proyecto.exe -I.
+echo 2. Compilando C y enlazando...
+gcc Main.c Juego.c rutinas.obj -o BitQuest.exe
 if %errorlevel% neq 0 (
-    echo.
-    echo [ERROR] Hubo un problema al compilar o enlazar con GCC.
+    echo [ERROR] Fallo al compilar los archivos C
     pause
     exit /b %errorlevel%
 )
-echo [OK] Proyecto.exe generado con exito.
-echo.
 
-echo ============================================================
-echo             EJECUTANDO PROYECTO...
-echo ============================================================
 echo.
-Proyecto.exe
+echo [EXITO] Compilacion terminada. Ejecutable: BitQuest.exe
 pause
